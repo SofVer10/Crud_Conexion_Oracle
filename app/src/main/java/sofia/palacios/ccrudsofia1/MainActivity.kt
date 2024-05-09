@@ -35,7 +35,7 @@ class MainActivity : AppCompatActivity() {
         rcbDatos.layoutManager = LinearLayoutManager(this)
 
         //2. Crear un adaptador
-        val miAdaptador = Adaptador(listaDeDatos)
+
 
         val btnAgregar = findViewById<Button>(R.id.btnAgregar)
 
@@ -61,6 +61,5 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
-class Adaptador (private val Datos: Array<String>){
 
-}
+

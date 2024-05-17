@@ -1,6 +1,7 @@
 package sofia.palacios.ccrudsofia1
 
 import Modelos.Conexion
+import Modelos.ListaProductos
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
@@ -31,10 +32,24 @@ class MainActivity : AppCompatActivity() {
         val txtCantidad = findViewById<EditText>(R.id.txtCantidad)
         val rcbDatos = findViewById<RecyclerView>(R.id.rcbDatos)
 
+
         //1. Ponerle un layout a mi RecyclerView
         rcbDatos.layoutManager = LinearLayoutManager(this)
 
-        //2. Crear un adaptador
+        //2. Fución para mostrar datos
+        fun obtenerDatos(): List<ListaProductos>{
+            val objConexion = Conexion().cadenaConexion()
+
+            val statement = objConexion?.createStatement()
+            val resultSet = statement?.executeQuery("select * from tbproductosa1")!!
+
+            //CreateStament sirve para traer datos
+            //(Select en base de datos)
+
+            //prepareStament paramandat datos
+            //(Actualizar, crear y eliminar)
+
+        }
 
 
         val btnAgregar = findViewById<Button>(R.id.btnAgregar)
@@ -51,6 +66,7 @@ class MainActivity : AppCompatActivity() {
                 addProducto.setString(1, txtNombre.text.toString())
                 addProducto.setInt(2, txtPrecio.text.toString().toInt())
                 addProducto.setInt(3,txtCantidad.text.toString().toInt())
+
                 addProducto.executeUpdate()
             }
         }

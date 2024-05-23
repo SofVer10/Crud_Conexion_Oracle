@@ -2,6 +2,7 @@ package sofia.palacios.ccrudsofia1
 
 import Modelos.Conexion
 import Modelos.ListaProductos
+import RecyclerViewHelpers.Adaptador
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
@@ -11,9 +12,11 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,12 +39,24 @@ class MainActivity : AppCompatActivity() {
         //1. Ponerle un layout a mi RecyclerView
         rcbDatos.layoutManager = LinearLayoutManager(this)
 
-        //2. Fución para mostrar datos
+        //2. Función para mostrar datos
         fun obtenerDatos(): List<ListaProductos>{
             val objConexion = Conexion().cadenaConexion()
 
             val statement = objConexion?.createStatement()
             val resultSet = statement?.executeQuery("select * from tbproductosa1")!!
+
+            val listaProductos = mutableListOf<ListaProductos>()
+
+            //Recorrer todos los datos que me trajo el select
+
+            while (resultSet.next()){
+                val nombre = resultSet.getString("nombreProducto")
+                val productos = ListaProductos(nombre)
+                listaProductos.add(productos)
+            }
+
+            return listaProductos
 
             //CreateStament sirve para traer datos
             //(Select en base de datos)
@@ -49,6 +64,18 @@ class MainActivity : AppCompatActivity() {
             //prepareStament paramandat datos
             //(Actualizar, crear y eliminar)
 
+        }
+
+        //Ejecutamos la función
+        CoroutineScope(Dispatchers.IO).launch {
+            val ejecutarFuncion = obtenerDatos()
+
+
+            withContext(Dispatchers.Main){
+                //Uno el miAdaptador con el RecyclerView
+                val miAdaptador = Adaptador(ejecutarFuncion)
+                rcbDatos.adapter = miAdaptador
+            }
         }
 
 

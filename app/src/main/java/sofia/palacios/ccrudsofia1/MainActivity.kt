@@ -95,8 +95,17 @@ class MainActivity : AppCompatActivity() {
                 addProducto.setInt(3,txtCantidad.text.toString().toInt())
 
                 addProducto.executeUpdate()
+
+                val nuevosProductos = obtenerDatos()
+
+                //Creo una corrutina que actualice el listado
+                withContext(Dispatchers.Main){
+                    (rcbDatos.adapter as? Adaptador)?.actualizarRecyclerView(nuevosProductos)
+                }
             }
         }
+
+        //La corrutina IO es para procesos secundarios, mientras que main es para mostrar algo en loa pagina de main (principal)
 
         //Mostrar datos
 

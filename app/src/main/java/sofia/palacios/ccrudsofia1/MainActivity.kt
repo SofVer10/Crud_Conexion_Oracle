@@ -17,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.UUID
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -89,10 +90,12 @@ class MainActivity : AppCompatActivity() {
                 val objConexion = Conexion().cadenaConexion()
 
                 //2. Crear una varible que sea igual a un PrepareStatement
-                val addProducto = objConexion?.prepareStatement("insert into tbProductosA1 values(?, ?, ?)")!!
-                addProducto.setString(1, txtNombre.text.toString())
-                addProducto.setInt(2, txtPrecio.text.toString().toInt())
-                addProducto.setInt(3,txtCantidad.text.toString().toInt())
+                val addProducto = objConexion?.prepareStatement("insert into tbProductosA1 (UUID, nombreProducto, precio, cantidad)  values(?, ?, ?, ?)")!!
+                //El UUID es para que un dato sea único
+                addProducto.setString(1, UUID.randomUUID().toString())
+                addProducto.setString(2, txtNombre.text.toString())
+                addProducto.setInt(3, txtPrecio.text.toString().toInt())
+                addProducto.setInt(4,txtCantidad.text.toString().toInt())
 
                 addProducto.executeUpdate()
 

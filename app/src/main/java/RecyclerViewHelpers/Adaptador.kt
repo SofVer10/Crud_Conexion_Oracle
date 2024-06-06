@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import sofia.palacios.ccrudsofia1.R
+import java.util.UUID
 
 class Adaptador(private var Datos: List<ListaProductos>): RecyclerView.Adapter<ViewHolder>() {
 
@@ -18,6 +19,9 @@ class Adaptador(private var Datos: List<ListaProductos>): RecyclerView.Adapter<V
         Datos = nuevaLista
         notifyDataSetChanged() //Notifica que hay datos nuevos
     }
+
+
+
 
     //1. Crear la función de eliminar
     fun eliminarRegistro(nombreProducto: String, posicion: Int) {
@@ -53,6 +57,38 @@ class Adaptador(private var Datos: List<ListaProductos>): RecyclerView.Adapter<V
         //Quito los datos de la lista
         notifyItemRemoved(posicion)
         notifyDataSetChanged()
+    }
+
+    //Actualizar datos
+
+    fun actualizarListaDespuesdeEditar(uuid: String, nuevoNombre: String) {
+
+        //Obtener UUID
+        val index = Datos.indexOfFirst { it.uuid == uuid }
+        //Asigno el nuevo Nombre
+        Datos[index].nombreProducto = nuevoNombre
+        //Notifico que los cambios han sido realizados
+        notifyItemChanged(index)
+    }
+
+    //Creamos la función de editar o actualizar en la base de datos
+    fun editarProducto (nombreProducto: String, uuid: String){
+        //Creamos una corrutina
+        GlobalScope.launch(Dispatchers.IO){
+            //1.Creo un objeto de la clase conxión
+            val objConexion = Conexion().cadenaConexion()
+
+            //2. Creo una variable que contenga un PrepareStament
+            val updateProducto = objConexion?.prepareStatement("update tbProductosA1 set nombreProducto = ? where UUID = ?")!!
+            updateProducto.setString(1, nombreProducto)
+            updateProducto.setString(2, uuid)
+            updateProducto.executeUpdate()
+
+            val commit = objConexion.prepareStatement("commit")
+
+            commit.executeUpdate()
+        }
+
     }
 
     //Colocar el mouse en la clase en este caso Adaptador y darle clic en implementar miembros
@@ -102,6 +138,8 @@ class Adaptador(private var Datos: List<ListaProductos>): RecyclerView.Adapter<V
             dialog.show()
         }
     }
+
+
 
 
 }

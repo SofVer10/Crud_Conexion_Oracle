@@ -3,7 +3,7 @@ package RecyclerViewHelpers
 import Modelos.Conexion
 import Modelos.ListaProductos
 import android.app.AlertDialog
-import android.net.Uri.Builder
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.EditText
@@ -13,17 +13,16 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import sofia.palacios.ccrudsofia1.R
-import java.util.UUID
+import sofia.palacios.ccrudsofia1.detalle_productos
 
 class Adaptador(private var Datos: List<ListaProductos>): RecyclerView.Adapter<ViewHolder>() {
 
-    fun actualizarRecyclerView(nuevaLista: List<ListaProductos>){
+    fun actualizarRecyclerView(nuevaLista: List<ListaProductos>) {
         Datos = nuevaLista
         notifyDataSetChanged() //Notifica que hay datos nuevos
     }
 
     //prepareStament funciona para ejecutar las sentecias de SQL
-
 
 
     //1. Crear la función de eliminar
@@ -36,18 +35,19 @@ class Adaptador(private var Datos: List<ListaProductos>): RecyclerView.Adapter<V
         //launch lanza la corrutina
         //Dispatchers para elegir el tipo de corrutina
         //Quitar de la base de datos
-        GlobalScope.launch (Dispatchers.IO){
+        GlobalScope.launch(Dispatchers.IO) {
             //Dos pasos para eliminar de la base de datos
 
             //1. Crear un objeto de la clase conexión
             val objConexion = Conexion().cadenaConexion()
 
             //2. Creo una variable que contenga un PrepareStatement
-            val deleteProducto = objConexion?.prepareStatement("delete tbProductosA1 where nombreProducto =?")!!
+            val deleteProducto =
+                objConexion?.prepareStatement("delete tbProductosA1 where nombreProducto =?")!!
             deleteProducto.setString(1, nombreProducto)
             deleteProducto.executeUpdate()
 
-            val commit =objConexion.prepareStatement("commit")
+            val commit = objConexion.prepareStatement("commit")
             commit.executeUpdate()
 
             //rollback es como un control z en Oracle, permite recuperar los datos borrados
@@ -75,14 +75,15 @@ class Adaptador(private var Datos: List<ListaProductos>): RecyclerView.Adapter<V
     }
 
     //Creamos la función de editar o actualizar en la base de datos
-    fun editarProducto (nombreProducto: String, uuid: String){
+    fun editarProducto(nombreProducto: String, uuid: String) {
         //Creamos una corrutina
-        GlobalScope.launch(Dispatchers.IO){
+        GlobalScope.launch(Dispatchers.IO) {
             //1.Creo un objeto de la clase conxión
             val objConexion = Conexion().cadenaConexion()
 
             //2. Creo una variable que contenga un PrepareStament
-            val updateProducto = objConexion?.prepareStatement("update tbProductosA1 set nombreProducto = ? where UUID = ?")!!
+            val updateProducto =
+                objConexion?.prepareStatement("update tbProductosA1 set nombreProducto = ? where UUID = ?")!!
             updateProducto.setString(1, nombreProducto)
             updateProducto.setString(2, uuid)
             updateProducto.executeUpdate()
@@ -91,7 +92,7 @@ class Adaptador(private var Datos: List<ListaProductos>): RecyclerView.Adapter<V
 
             commit.executeUpdate()
 
-            withContext(Dispatchers.Main){
+            withContext(Dispatchers.Main) {
                 actualizarListaDespuesdeEditar(uuid, nombreProducto)
             }
         }
@@ -100,12 +101,12 @@ class Adaptador(private var Datos: List<ListaProductos>): RecyclerView.Adapter<V
 
     //Colocar el mouse en la clase en este caso Adaptador y darle clic en implementar miembros
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val vista = LayoutInflater.from(parent.context).inflate(R.layout.activity_item_card, parent, false)
+        val vista =
+            LayoutInflater.from(parent.context).inflate(R.layout.activity_item_card, parent, false)
         return ViewHolder(vista)
     }
 
     override fun getItemCount() = Datos.size
-
 
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -126,15 +127,14 @@ class Adaptador(private var Datos: List<ListaProductos>): RecyclerView.Adapter<V
 
             //Si el resultado es positivo
             //botones de mi alerta
-            builder.setPositiveButton("Si"){
-                                           //Lo que va despues de la flecha es lo que se va a ejecutar se puede cambiar de pantalla también
-                dialog, wich ->
-                eliminarRegistro(producto.nombreProducto, position )
+            builder.setPositiveButton("Si") {
+                //Lo que va despues de la flecha es lo que se va a ejecutar se puede cambiar de pantalla también
+                    dialog, wich ->
+                eliminarRegistro(producto.nombreProducto, position)
             }
 
             //Si el resultado es negativo
-            builder.setNegativeButton("No"){
-                dialog, wich ->
+            builder.setNegativeButton("No") { dialog, wich ->
                 //Si doy clic en "No" se cierra la alerta
                 dialog.dismiss()
             }
@@ -145,7 +145,7 @@ class Adaptador(private var Datos: List<ListaProductos>): RecyclerView.Adapter<V
         }
 
         //Clic al ícono de editar (lapicito)
-        holder.imgEditar.setOnClickListener{
+        holder.imgEditar.setOnClickListener {
             //Creo una alerta
             val contexto = holder.itemView.context
             val builder = AlertDialog.Builder(contexto)
@@ -161,21 +161,33 @@ class Adaptador(private var Datos: List<ListaProductos>): RecyclerView.Adapter<V
             builder.setView(cuadritoDeTexto)
 
             //Programamos los botones
-            builder.setPositiveButton("Actualizar"){
-                dialog, wich ->
+            builder.setPositiveButton("Actualizar") { dialog, wich ->
                 editarProducto(cuadritoDeTexto.text.toString(), producto.uuid)
             }
 
-            builder.setNegativeButton("Cancelar"){
-                dialog, wich ->
+            builder.setNegativeButton("Cancelar") { dialog, wich ->
                 dialog.dismiss()
             }
             val dialog = builder.create()
             dialog.show()
         }
+
+        //Darle clic a la card
+        holder.itemView.setOnClickListener {
+            val context = holder.itemView.context
+
+            //Cambiamos de pantalla
+            val pantallaDetalle = Intent(context, detalle_productos::class.java)
+
+            pantallaDetalle.putExtra("UUID", producto.uuid)
+            pantallaDetalle.putExtra("nombreProducto", producto.nombreProducto)
+            pantallaDetalle.putExtra("precio", producto.precio)
+            pantallaDetalle.putExtra("cantidad", producto.cantidad)
+
+            context.startActivity(pantallaDetalle)
+        }
+
+
     }
-
-
-
 
 }
